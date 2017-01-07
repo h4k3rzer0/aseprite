@@ -1,5 +1,5 @@
 // Aseprite UI Library
-// Copyright (C) 2001-2016  David Capello
+// Copyright (C) 2001-2017  David Capello
 //
 // This file is released under the terms of the MIT license.
 // Read LICENSE.txt for more information.
@@ -258,9 +258,6 @@ bool Manager::generateMessages()
 
   // Generate messages for timers
   Timer::pollTimers();
-
-  // Generate redraw events.
-  flushRedraw();
 
   if (!msg_queue.empty())
     return true;
@@ -612,7 +609,17 @@ void Manager::handleWindowZOrder()
 
 void Manager::dispatchMessages()
 {
-  pumpQueue();
+  // Send messages in the queue (mouse/key/timer/etc. events) This
+  // might change the state of widgets, etc. In case pumpQueue()
+  // returns a number greater than 0, it means that we've processed
+  // some messages, so we've to redraw the screen.
+  if (pumpQueue() > 0) {
+    // Generate and send just kPaintMessages with the latest UI state.
+    flushRedraw();
+    pumpQueue();
+  }
+
+  // Flip the back-buffer to the real display.
   flipDisplay();
 }
 
@@ -1214,12 +1221,13 @@ void Manager::onSizeHint(SizeHintEvent& ev)
   ev.setSizeHint(gfx::Size(w, h));
 }
 
-void Manager::pumpQueue()
+int Manager::pumpQueue()
 {
 #ifdef LIMIT_DISPATCH_TIME
   base::tick_t t = base::current_tick();
 #endif
 
+  int count = 0;                // Number of processed messages
   auto it = msg_queue.begin();
   while (it != msg_queue.end()) {
 #ifdef LIMIT_DISPATCH_TIME
@@ -1284,7 +1292,10 @@ void Manager::pumpQueue()
 
     // Destroy the message
     delete first_msg;
+    ++count;
   }
+
+  return count;
 }
 
 bool Manager::sendMessageToWidget(Message* msg, Widget* widget)
@@ -1671,7 +1682,8 @@ static Widget* next_widget(Widget* widget)
   if (!widget->children().empty())
     return UI_FIRST_WIDGET(widget->children());
 
-  while (widget->parent()->type() != kManagerWidget) {
+  while (widget->parent() &&
+         widget->parent()->type() != kManagerWidget) {
     WidgetsList::const_iterator begin = widget->parent()->children().begin();
     WidgetsList::const_iterator end = widget->parent()->children().end();
     WidgetsList::const_iterator it = std::find(begin, end, widget);

@@ -1,5 +1,5 @@
 // Aseprite
-// Copyright (C) 2001-2016  David Capello
+// Copyright (C) 2001-2017  David Capello
 //
 // This program is distributed under the terms of
 // the End-User License Agreement for Aseprite.
@@ -23,7 +23,7 @@
 
 // General information
 #define PACKAGE "Aseprite"
-#define VERSION "1.1.10-dev"
+#define VERSION "1.1.12-dev"
 
 #ifdef CUSTOM_WEBSITE_URL
 #define WEBSITE                 CUSTOM_WEBSITE_URL // To test web server
@@ -34,7 +34,7 @@
 #define WEBSITE_CONTRIBUTORS    WEBSITE "contributors/"
 #define WEBSITE_NEWS_RSS        "http://blog.aseprite.org/rss"
 #define UPDATE_URL              WEBSITE "update/?xml=1"
-#define COPYRIGHT               "Copyright (C) 2001-2016 David Capello"
+#define COPYRIGHT               "Copyright (C) 2001-2017 David Capello"
 
 #include "base/base.h"
 #include "base/debug.h"
